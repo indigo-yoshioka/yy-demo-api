@@ -1,0 +1,26 @@
+services:
+  # PostgreSQL
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:16
+    env_file: ./docker.env
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Django REST framework
+  api:
+    container_name: demo_api
+    env_file: ./docker.env
+    build: .
+    command: sh -c "chmod +x /code/wait-for-it.sh && /code/wait-for-it.sh postgres_db 5432 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres_db
+
+volumes:
+  database-data:
